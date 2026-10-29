@@ -82,9 +82,9 @@ O frontend abre em `http://localhost:5173`.
 
 O frontend está publicado em:
 
-- https://vibecheck-website.vercel.app
+- https://vibecheck-website-ten.vercel.app
 
-Ele está na Vercel Hobby (gratuita) e funciona em modo local no navegador. Cadastro, login e histórico persistente da API só ficam ativos depois que o backend for publicado e `VITE_API_URL` for configurado.
+Ele está na Vercel Hobby (gratuita), integrado ao backend Render e ao PostgreSQL Neon. A API está em `https://vibecheck-api-u092.onrender.com`; a verificação de saúde fica em `/api/health`. O frontend publicado já usa essa API. As instruções a seguir servem para recriar ou atualizar a configuração do deploy.
 
 ### Backend gratuito (Render + Neon PostgreSQL)
 
@@ -101,25 +101,25 @@ O Railway estava com novos cadastros desativados durante a configuração. Para 
    ```env
    VIBECHECK_DB_ENGINE=postgresql
    VIBECHECK_DATABASE_URL=postgresql://USUARIO:SENHA@HOST/BANCO?sslmode=require
-   VIBECHECK_CORS_ORIGINS=https://vibecheck-website.vercel.app
-   VIBECHECK_FRONTEND_URL=https://vibecheck-website.vercel.app
+   VIBECHECK_CORS_ORIGINS=https://vibecheck-website-ten.vercel.app
+   VIBECHECK_FRONTEND_URL=https://vibecheck-website-ten.vercel.app
    VIBECHECK_SEED_DEMO_USER=false
    VIBECHECK_RATE_LIMIT=true
    ```
 
    `VIBECHECK_DATABASE_URL` é secreta e deve ser cadastrada somente no painel do Render. O Render Blueprint [render.yaml](./render.yaml) já define as variáveis não secretas.
 
-4. Depois que o Render fornecer a URL `https://...onrender.com`, cadastre na Vercel, em **Settings → Environment Variables**:
+4. O frontend publicado já está configurado com `VITE_API_URL=https://vibecheck-api-u092.onrender.com`. Se criar outro projeto na Vercel ou mudar a URL da API, cadastre o endereço real em **Settings → Environment Variables**:
 
    ```env
-   VITE_API_URL=https://SUA-API.onrender.com
+   VITE_API_URL=https://SEU-SERVICO.onrender.com
    ```
 
-   Em seguida, faça um redeploy do frontend. Configure também no Render o domínio real atribuído à Vercel em `VIBECHECK_CORS_ORIGINS` e `VIBECHECK_FRONTEND_URL`.
+   Em seguida, faça um redeploy do frontend. Configure também no Render o domínio real atribuído à Vercel em `VIBECHECK_CORS_ORIGINS` e `VIBECHECK_FRONTEND_URL`. No deploy atual, o domínio é `https://vibecheck-website-ten.vercel.app`.
 
 Os planos gratuitos têm limites: Render pode suspender a API após inatividade e levar cerca de um minuto para acordar; Neon suspende o compute após inatividade e limita compute, armazenamento e transferência. Não habilite upgrades nem cobrança automática sem revisar os preços.
 
-O arquivo [backend/.env.production.example](./backend/.env.production.example) mostra as variáveis do backend. Sem `VITE_API_URL`, o frontend continua em modo local, sem contas ou histórico persistidos no servidor.
+O arquivo [backend/.env.production.example](./backend/.env.production.example) mostra as variáveis do backend. No frontend publicado, `VITE_API_URL` aponta para a API Render.
 
 ## 5. Testes
 Backend:

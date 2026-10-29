@@ -44,4 +44,31 @@ describe("buildSecurityReport", () => {
 
     expect(report.output("arraybuffer").byteLength).toBeGreaterThan(1_000);
   });
+
+  it("includes low and medium severity counts in the summary", () => {
+    const report = buildSecurityReport({
+      ...sample,
+      findings: [
+        ...sample.findings,
+        {
+          ...sample.findings[0],
+          id: "medium-finding",
+          severity: "Média",
+          locations: [8, 9],
+          evidence: ["line 8", "line 9"],
+        },
+        {
+          ...sample.findings[0],
+          id: "low-finding",
+          severity: "Baixa",
+          locations: [12],
+          evidence: ["line 12"],
+        },
+      ],
+    });
+
+    expect(report.output()).toContain("Médios: 2");
+    expect(report.output()).toContain("Baixos: 1");
+    expect(report.output()).toContain("menor = mais sinais");
+  });
 });

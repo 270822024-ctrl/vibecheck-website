@@ -64,6 +64,7 @@ import type { Analysis, Finding } from "./types";
 type View = "scanner" | "coverage" | "history";
 type InputMode = "paste" | "file";
 type ApiStatus = "not-configured" | "checking" | "online" | "offline";
+type FindingFilter = "Todas" | Finding["severity"];
 
 const demoSources = {
   python: {
@@ -843,7 +844,7 @@ function App() {
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [filter, setFilter] = useState("Todas");
+  const [filter, setFilter] = useState<FindingFilter>("Todas");
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [reportError, setReportError] = useState("");
   const [isDownloadingReport, setIsDownloadingReport] = useState(false);
@@ -909,17 +910,20 @@ function App() {
   }, [portal, sidebarOpen, sidebarCollapsed]);
 
   const counts = useMemo(() => {
-    if (!analysis) return { critical: 0, high: 0, medium: 0, occurrences: 0 };
+    if (!analysis) {
+      return { critical: 0, high: 0, medium: 0, low: 0, occurrences: 0 };
+    }
     return analysis.findings.reduce(
       (total, finding) => {
         const occurrences = finding.locations.length;
         if (finding.severity === "Crítica") total.critical += occurrences;
         else if (finding.severity === "Alta") total.high += occurrences;
-        else total.medium += occurrences;
+        else if (finding.severity === "Média") total.medium += occurrences;
+        else total.low += occurrences;
         total.occurrences += occurrences;
         return total;
       },
-      { critical: 0, high: 0, medium: 0, occurrences: 0 },
+      { critical: 0, high: 0, medium: 0, low: 0, occurrences: 0 },
     );
   }, [analysis]);
 
@@ -1531,18 +1535,49 @@ function App() {
                   </div>
                   {reportError && <div className="error-notice" role="alert"><AlertTriangle size={15} /> {reportError}</div>}
                   <div className="result-kpis">
-                    <div className="result-kpi result-total"><span>ACHADOS</span><strong>{counts.occurrences}</strong><small>{analysis.findings.length} categorias</small></div>
+                    <div className="result-kpi result-total"><span>OCORRÊNCIAS</span><strong>{counts.occurrences}</strong><small>{analysis.findings.length} categorias</small></div>
                     <div className="result-kpi result-critical"><span>CRÍTICOS</span><strong>{counts.critical}</strong><small>correção imediata</small></div>
                     <div className="result-kpi result-high"><span>ALTOS</span><strong>{counts.high}</strong><small>prioridade alta</small></div>
-                    <div className="result-kpi result-score"><span>ÍNDICE</span><strong>{currentScore}<small>/100</small></strong><small>heurística demonstrativa</small></div>
+                    <div className="result-kpi result-medium"><span>MÉDIOS / BAIXOS</span><strong>{counts.medium + counts.low}</strong><small>{counts.medium} médios · {counts.low} baixos</small></div>
+                    <div className="result-kpi result-score"><span>ÍNDICE DE REFERÊNCIA</span><strong>{currentScore}<small>/100</small></strong><small>menor = mais sinais heurísticos</small></div>
+                  </div>
+                  <div className={`result-guidance ${counts.critical ? "guidance-critical" : ""}`} role="status">
+                    <Target size={17} />
+                    <div>
+                      <strong>Próximo passo recomendado</strong>
+                      <p>
+                        {counts.critical > 0
+                          ? "Corrija os achados críticos antes de publicar e revogue credenciais que possam ter sido expostas."
+                          : counts.high > 0
+                            ? "Priorize os achados altos e valide cada correção antes do deploy."
+                            : counts.medium > 0
+                              ? "Revise os achados médios no contexto do projeto e confirme se representam risco real."
+                              : counts.low > 0
+                                ? "Revise os alertas baixos e inclua as correções no planejamento de manutenção."
+                                : "Nenhum padrão foi sinalizado pelas regras; faça uma revisão contextual antes de concluir."}
+                      </p>
+                    </div>
                   </div>
                   <div className="findings-panel">
                     <div className="findings-toolbar">
-                      <div><h3>Achados prioritários</h3><span>{counts.occurrences} ocorrência(s) em {analysis.findings.length} categoria(s)</span></div>
-                      <div className="filter-tabs" aria-label="Filtrar por severidade">
-                        {["Todas", "Crítica", "Alta", "Média"].map((severity) => (
-                          <button className={filter === severity ? "active" : ""} type="button" key={severity} onClick={() => setFilter(severity)}>
-                            {severity}{severity === "Todas" ? ` · ${analysis.findings.length}` : ""}
+                      <div><h3>Achados detectados</h3><span>Ocorrências agrupadas por regra; expanda um item para ver evidência e correção.</span></div>
+                      <div className="filter-tabs" role="group" aria-label="Filtrar achados por severidade">
+                        {([
+                          ["Todas", counts.occurrences],
+                          ["Crítica", counts.critical],
+                          ["Alta", counts.high],
+                          ["Média", counts.medium],
+                          ["Baixa", counts.low],
+                        ] as const).map(([severity, count]) => (
+                          <button
+                            className={filter === severity ? "active" : ""}
+                            type="button"
+                            key={severity}
+                            aria-pressed={filter === severity}
+                            aria-label={`${severity}: ${count} ocorrência(s)`}
+                            onClick={() => setFilter(severity)}
+                          >
+                            {severity} · {count}
                           </button>
                         ))}
                       </div>
@@ -1557,7 +1592,7 @@ function App() {
                     ) : (
                       <div className="clean-result"><BadgeCheck size={29} /><strong>Nenhum padrão sinalizado</strong><span>As regras desta versão não encontraram correspondências. Isso não comprova que o código esteja livre de vulnerabilidades.</span></div>
                     )}
-                    <div className="findings-footer"><AlertTriangle size={14} /> Resultados heurísticos — confirme cada achado no contexto do projeto.</div>
+                    <div className="findings-footer"><AlertTriangle size={14} /> Triagem estática por padrões conhecidos: pode haver falsos positivos e vulnerabilidades não detectadas. Não é uma auditoria nem certifica que o código está seguro.</div>
                   </div>
                   <div className="owasp-mini-map">
                     <div><div className="eyebrow">REFERÊNCIA DE SEGURANÇA</div><h3>Como os achados se conectam ao OWASP</h3><p>Veja a classificação completa e o que cada categoria pode ou não verificar automaticamente.</p></div>

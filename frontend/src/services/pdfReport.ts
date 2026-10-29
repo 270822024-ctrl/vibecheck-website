@@ -105,6 +105,16 @@ export function buildSecurityReport(analysis: Analysis): jsPDF {
       total + (finding.severity === "Alta" ? finding.locations.length : 0),
     0,
   );
+  const medium = findings.reduce(
+    (total, finding) =>
+      total + (finding.severity === "Média" ? finding.locations.length : 0),
+    0,
+  );
+  const low = findings.reduce(
+    (total, finding) =>
+      total + (finding.severity === "Baixa" ? finding.locations.length : 0),
+    0,
+  );
   const score = scoreFor(analysis);
   const verdict =
     critical > 0
@@ -201,23 +211,30 @@ export function buildSecurityReport(analysis: Analysis): jsPDF {
     145,
     { size: 8, color: muted },
   );
+  text(
+    pdf,
+    `Médios: ${medium} · Baixos: ${low} · índice heurístico: ${score}/100 (menor = mais sinais; não é certificação)`,
+    14,
+    151,
+    { size: 7, color: muted },
+  );
 
   pdf.setFillColor(critical > 0 ? 255 : 242, critical > 0 ? 240 : 238, critical > 0 ? 242 : 255);
-  pdf.roundedRect(14, 152, 182, 18, 2, 2, "F");
+  pdf.roundedRect(14, 158, 182, 18, 2, 2, "F");
   pdf.setFillColor(...(critical > 0 ? danger : purple));
-  pdf.rect(14, 152, 1.5, 18, "F");
+  pdf.rect(14, 158, 1.5, 18, "F");
   text(pdf, "VEREDITO", 20, 159, {
     size: 6.5,
     color: critical > 0 ? danger : purple,
     bold: true,
   });
-  text(pdf, verdict, 20, 165, {
+  text(pdf, verdict, 20, 171, {
     size: 8.5,
     color: ink,
     bold: true,
   });
 
-  text(pdf, "Ordem sugerida de correção", 14, 183, {
+  text(pdf, "Ordem sugerida de correção", 14, 189, {
     size: 14,
     bold: true,
   });
@@ -225,11 +242,11 @@ export function buildSecurityReport(analysis: Analysis): jsPDF {
     pdf,
     "Consolidação por categoria · ordenada por severidade e localização",
     14,
-    189,
+    195,
     { size: 7.5, color: muted },
   );
   autoTable(pdf, {
-    startY: 193,
+    startY: 199,
     head: [["#", "SEVERIDADE", "ACHADO", "LOCALIZAÇÕES", "OWASP / CWE"]],
     body: findings.map((finding, index) => [
       String(index + 1).padStart(2, "0"),

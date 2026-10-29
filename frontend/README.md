@@ -26,15 +26,22 @@ npm run build
 
 Os arquivos estáticos ficam em `dist/` e podem ser publicados no GitHub Pages ou
 em outro host de frontend.
+O deploy atual usa a Vercel: https://vibecheck-website-ten.vercel.app.
 
 ## O que já está disponível
 
 - Analisa trechos colados ou arquivos de código de até 1 MB no navegador para
   visitantes e no backend para contas autenticadas com a API configurada.
 - Exibe evidências, linhas, severidade, referência CWE/OWASP, impacto, correção
-  recomendada e prevenção.
+  recomendada, prevenção e um próximo passo priorizado pela severidade.
+- Permite filtrar achados críticos, altos, médios e baixos separadamente; as
+  contagens distinguem ocorrências de categorias.
+- Explica que o índice de referência é heurístico: quanto menor, mais sinais
+  foram encontrados pelas regras, sem representar uma nota ou certificação de
+  segurança.
 - Baixa um relatório PDF estilizado, com resumo executivo, ordem sugerida de
-  correção, cobertura heurística do OWASP Top 10:2025 e detalhes dos achados.
+  correção, contagens por severidade, cobertura heurística do OWASP Top 10:2025
+  e detalhes dos achados.
 - Oferece autenticação e histórico por conta via API; no modo local, guarda o
   histórico neste navegador usando `localStorage`.
 - Permite testar como visitante sem criar conta: carrega um exemplo de código e
@@ -43,8 +50,10 @@ em outro host de frontend.
   ou estado de verificação e permite tentar novamente pelo indicador do workspace.
 - Diferencia explicitamente análise local de análise autenticada pela API; o
   visitante nunca envia o código ao backend.
-- A API usa SQLite ou MySQL configurável. O scanner atual tem 19 regras de
-  código e uma regra para manifestos de dependências.
+- A interface se adapta a telas estreitas, incluindo celulares a partir de
+  320 px.
+- A API suporta SQLite, MySQL ou PostgreSQL configurável. As regras do scanner
+  são heurísticas e podem gerar falsos positivos ou deixar de detectar riscos.
 
 ## Próximas etapas do produto
 
