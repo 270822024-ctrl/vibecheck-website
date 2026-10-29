@@ -78,6 +78,12 @@ class AuthManager:
                     is_integrity = isinstance(exc, mysql.connector.IntegrityError)
                 except ImportError:
                     pass
+            if not is_integrity:
+                try:
+                    import psycopg
+                    is_integrity = isinstance(exc, psycopg.IntegrityError)
+                except ImportError:
+                    pass
             if is_integrity:
                 raise ApiError(409, "Este e-mail já está cadastrado.") from exc
             raise

@@ -52,10 +52,21 @@ class Settings:
     # --- Banco de dados ---
     db_engine: str = field(default_factory=lambda: _str_env("VIBECHECK_DB_ENGINE", "sqlite").lower())
     db_host: str = field(default_factory=lambda: _str_env("VIBECHECK_DB_HOST", "127.0.0.1"))
-    db_port: int = field(default_factory=lambda: _int_env("VIBECHECK_DB_PORT", 3306))
+    db_port: int = field(
+        default_factory=lambda: _int_env(
+            "VIBECHECK_DB_PORT",
+            5432
+            if _str_env("VIBECHECK_DB_ENGINE", "sqlite").lower()
+            in {"postgres", "postgresql"}
+            else 3306,
+        )
+    )
     db_name: str = field(default_factory=lambda: _str_env("VIBECHECK_DB_NAME", "vibecheck"))
     db_user: str = field(default_factory=lambda: _str_env("VIBECHECK_DB_USER", "vibecheck_user"))
     db_password: str = field(default_factory=lambda: _str_env("VIBECHECK_DB_PASSWORD", ""))
+    db_url: str = field(
+        default_factory=lambda: _str_env("VIBECHECK_DATABASE_URL", _str_env("DATABASE_URL"))
+    )
 
     # --- Análise (mesmos limites do frontend) ---
     max_source_bytes: int = field(

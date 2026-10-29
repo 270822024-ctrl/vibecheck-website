@@ -8,21 +8,13 @@ services:
     startCommand: bash start.sh
     envVars:
       - key: VIBECHECK_DB_ENGINE
-        value: mysql
-      - key: VIBECHECK_DB_HOST
-        sync: false
-      - key: VIBECHECK_DB_PORT
-        value: 3306
-      - key: VIBECHECK_DB_NAME
-        value: vibecheck
-      - key: VIBECHECK_DB_USER
-        value: vibecheck_user
-      - key: VIBECHECK_DB_PASSWORD
+        value: postgresql
+      - key: VIBECHECK_DATABASE_URL
         sync: false
       - key: VIBECHECK_CORS_ORIGINS
-        sync: false
+        value: https://vibecheck-website.vercel.app
       - key: VIBECHECK_FRONTEND_URL
-        sync: false
+        value: https://vibecheck-website.vercel.app
       - key: VIBECHECK_SEED_DEMO_USER
         value: false
       - key: VIBECHECK_RATE_LIMIT

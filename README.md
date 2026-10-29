@@ -78,81 +78,48 @@ O frontend abre em `http://localhost:5173`.
 
 **Integração:** quando `VITE_API_URL` está definido em `frontend/.env.local`, os formulários de cadastro/login usam `/api/auth/register` e `/api/auth/login`, e as análises/histórico são enviados para `/api/analyses`, que persiste os dados no banco configurado no backend. Sem `VITE_API_URL`, o frontend usa o modo local no navegador. A recuperação de senha pela tela ainda precisa de uma integração de interface dedicada; a API já oferece os endpoints e exige SMTP para enviar e-mails.
 
-## 4. Publicar em produção (Vercel + Render)
+## 4. Publicação e deploy
 
-A estrutura do projeto já está pronta para esse modelo de deploy:
+O frontend está publicado em:
 
-- Frontend estático: Vercel
-- API FastAPI: Render
-- Banco MySQL: provedor externo gerenciado
+- https://vibecheck-website.vercel.app
 
-### Frontend no Vercel
-1. Crie um projeto no Vercel.
-2. Defina a pasta raiz como `frontend`.
-3. Build command:
+Ele está na Vercel Hobby (gratuita) e funciona em modo local no navegador. Cadastro, login e histórico persistente da API só ficam ativos depois que o backend for publicado e `VITE_API_URL` for configurado.
 
-   ```bash
-   npm install && npm run build
-   ```
+### Backend gratuito (Render + Neon PostgreSQL)
 
-4. Output directory:
+O Railway estava com novos cadastros desativados durante a configuração. Para manter a restrição de não gerar cobranças, o plano alternativo é Render Free + Neon Free, usando PostgreSQL. O backend agora aceita esse banco com SSL.
 
-   ```bash
-   dist
-   ```
-
-5. Configure a variável de ambiente:
+1. Crie um projeto PostgreSQL no plano Free do Neon.
+2. Crie um Web Service no Render ligado ao repositório privado, com:
+   - Root Directory: `backend`
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `bash start.sh`
+   - Instance Type: `Free`
+3. Configure no Render:
 
    ```env
-   VITE_API_URL=https://seu-backend.onrender.com
-   ```
-
-   O arquivo de exemplo está em `frontend/.env.production.example`.
-
-6. O arquivo `frontend/vercel.json` já inclui fallback para SPA em Vite.
-
-### Backend no Render
-1. Crie um Web Service no Render.
-2. Conecte este repositório e defina a pasta raiz como `backend`.
-3. Build command:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Start command:
-
-   ```bash
-   bash start.sh
-   ```
-
-5. Configure as variáveis de ambiente abaixo no painel do Render:
-
-   ```env
-   VIBECHECK_DB_ENGINE=mysql
-   VIBECHECK_DB_HOST=seu-host-mysql
-   VIBECHECK_DB_PORT=3306
-   VIBECHECK_DB_NAME=vibecheck
-   VIBECHECK_DB_USER=vibecheck_user
-   VIBECHECK_DB_PASSWORD=sua_senha_forte
-   VIBECHECK_CORS_ORIGINS=https://seu-frontend.vercel.app
-   VIBECHECK_FRONTEND_URL=https://seu-frontend.vercel.app
+   VIBECHECK_DB_ENGINE=postgresql
+   VIBECHECK_DATABASE_URL=postgresql://USUARIO:SENHA@HOST/BANCO?sslmode=require
+   VIBECHECK_CORS_ORIGINS=https://vibecheck-website.vercel.app
+   VIBECHECK_FRONTEND_URL=https://vibecheck-website.vercel.app
    VIBECHECK_SEED_DEMO_USER=false
    VIBECHECK_RATE_LIMIT=true
    ```
 
-   O arquivo de exemplo está em `backend/.env.production.example`.
+   `VIBECHECK_DATABASE_URL` é secreta e deve ser cadastrada somente no painel do Render. O Render Blueprint [render.yaml](./render.yaml) já define as variáveis não secretas.
 
-6. O blueprint `render.yaml` no raiz do projeto já prepara esse serviço automatizado. Se preferir, use o Render Blueprint apontando para esse arquivo.
+4. Depois que o Render fornecer a URL `https://...onrender.com`, cadastre na Vercel, em **Settings → Environment Variables**:
 
-### Banco MySQL em produção
-- Crie um MySQL gerenciado em um provedor externo (Aiven, Railway, DigitalOcean, PlanetScale etc.).
-- Crie o banco `vibecheck` e o usuário `vibecheck_user`.
-- Use o esquema em `database/schema.sql` para criar as tabelas iniciais.
+   ```env
+   VITE_API_URL=https://SUA-API.onrender.com
+   ```
 
-### Deploy de exemplo
-- Frontend: `https://vibecheck-frontend.vercel.app`
-- Backend: `https://vibecheck-api.onrender.com`
+   Em seguida, faça um redeploy do frontend. Configure também no Render o domínio real atribuído à Vercel em `VIBECHECK_CORS_ORIGINS` e `VIBECHECK_FRONTEND_URL`.
+
+Os planos gratuitos têm limites: Render pode suspender a API após inatividade e levar cerca de um minuto para acordar; Neon suspende o compute após inatividade e limita compute, armazenamento e transferência. Não habilite upgrades nem cobrança automática sem revisar os preços.
+
+O arquivo [backend/.env.production.example](./backend/.env.production.example) mostra as variáveis do backend. Sem `VITE_API_URL`, o frontend continua em modo local, sem contas ou histórico persistidos no servidor.
 
 ## 5. Testes
 Backend:

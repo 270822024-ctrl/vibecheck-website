@@ -55,9 +55,10 @@ Variáveis de ambiente (todas opcionais; veja `.env.example`):
 
 | Variável | Padrão | Para quê |
 |---|---|---|
-| `VIBECHECK_DB_ENGINE` | `sqlite` | `sqlite` ou `mysql` |
+| `VIBECHECK_DB_ENGINE` | `sqlite` | `sqlite`, `mysql` ou `postgresql` |
 | `VIBECHECK_DB_PATH` | `data/vibecheck.db` | Arquivo SQLite (quando `DB_ENGINE=sqlite`) |
 | `VIBECHECK_DB_HOST/PORT/NAME/USER/PASSWORD` | `localhost/3306/vibecheck/vibecheck_user` | Conexão MySQL |
+| `VIBECHECK_DATABASE_URL` | — | URL de conexão PostgreSQL, por exemplo Neon; requer SSL |
 | `VIBECHECK_CORS_ORIGINS` | `localhost:5173,127.0.0.1:5173` | Origens do frontend (CORS) |
 | `VIBECHECK_FRONTEND_URL` | `http://localhost:5173` | Base do link de recuperação |
 | `VIBECHECK_SMTP_HOST/PORT/USER/PASSWORD/FROM/STARTTLS` | — | E-mail de recuperação |
@@ -83,7 +84,7 @@ app/
   auth.py       cadastro, login, sessões, recuperação de senha
   security.py   scrypt (hash de senha), tokens
   storage.py    histórico por usuário
-  db.py         SQLite / MySQL
+  db.py         SQLite / MySQL / PostgreSQL
   ratelimit.py  janela deslizante em memória
   mailer.py     SMTP / log
 tests/          unittest (roda com pytest)
@@ -129,5 +130,5 @@ e copie as novas regras para `app/rules.json` (campos `pattern`/`safePattern`).
   Atrás de proxy, rode o uvicorn com `--proxy-headers` para ver o IP real.
 - O cadastro responde 409 para e-mail existente (permite descobrir se um e-mail tem conta).
 - Sem verificação de e-mail, MFA, troca de senha logado ou exclusão de conta.
-- SQLite atende uma instância; MySQL pode ser usado configurando `VIBECHECK_DB_ENGINE=mysql`.
+- SQLite atende uma instância; MySQL e PostgreSQL podem ser configurados por variáveis de ambiente.
 - As regras são heurísticas por linha: não executam o código nem substituem SAST/DAST/SCA.
