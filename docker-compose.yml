@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: vibecheck-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change_root_password}
+      MYSQL_DATABASE: vibecheck
+      MYSQL_USER: vibecheck_user
+      MYSQL_PASSWORD: ${VIBECHECK_DB_PASSWORD:-CHANGE_THIS_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - vibecheck_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  vibecheck_mysql_data:
